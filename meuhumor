@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário das Emoções da Mel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F5F7FA 0%, #FFE0F0 100%);
+            color: #333;
+            margin: 0;
+            padding: 16px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+        .container {
+            max-width: 360px;
+            width: 100%;
+        }
+        .card {
+            background: #FFFFFF;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+        .header {
+            background: #FF69B4; /* Rosa flamingo */
+            color: #FFFFFF;
+            padding: 16px;
+            border-radius: 12px 12px 0 0;
+            margin: -24px -24px 24px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header i {
+            margin-left: 8px;
+            font-size: 1.5em;
+            color: #FF8C00; /* Laranja */
+            animation: blink 2s infinite;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step h2 {
+            color: #2ECC71; /* Verde esmeralda */
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #A9DFBF; /* Verde hortelã claro */
+            font-weight: 600;
+            font-size: 1em;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #FCE4EC; /* Rosa claro */
+            border-radius: 8px;
+            font-size: 1em;
+            background: #FFF5F7;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: #FFB6C1; /* Rosa mais claro */
+            transform: scale(1.02);
+        }
+        select option:disabled {
+            color: #D1D5DB;
+            background: #F3F4F6;
+        }
+        .mood-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .mood-btn {
+            background: #FFE4E6;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mood-btn:hover, .mood-btn.selected {
+            background: #FF69B4; /* Rosa flamingo */
+            color: #FFFFFF;
+            transform: scale(1.05);
+        }
+        .mood-info {
+            margin-top: 12px;
+            padding: 12px;
+            background: #FFF5F7;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #FF69B4; /* Rosa flamingo */
+            animation: fadeIn 0.3s ease-out;
+            display: none;
+        }
+        .mood-info.active {
+            display: block;
+        }
+        .button {
+            background: linear-gradient(90deg, #FF69B4 0%, #FFB6C1 100%); /* Gradiente rosa */
+            color: #FFFFFF;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+        }
+        .button.back {
+            background: #FCE4EC;
+            color: #FF69B4; /* Rosa flamingo */
+        }
+        .button.back:hover {
+            background: #FAD2E0;
+            transform: scale(1.05);
+        }
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 16px 0;
+        }
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            background: #FCE4EC; /* Rosa claro */
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        .progress-dot.active {
+            background: #FF69B4; /* Rosa flamingo */
+        }
+        .success-message {
+            color: #10B981;
+            font-weight: 600;
+            margin-top: 16px;
+            animation: bounce 0.5s ease-out;
+            display: none;
+        }
+        .history-card {
+            background: #FFF5F7;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 0.9em;
+        }
+        .history-card h2 {
+            color: #2ECC71; /* Verde esmeralda */
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .history-entry {
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #FF69B4; /* Rosa flamingo */
+            background: #FFFFFF;
+            border-radius: 4px;
+        }
+        .history-entry strong {
+            color: #2ECC71; /* Verde esmeralda */
+            font-weight: 600;
+        }
+        .dbt-tip, .emdr-tip, .verse {
+            color: #FF69B4; /* Rosa flamingo */
+            font-style: italic;
+            margin-top: 4px;
+            font-size: 0.8em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #FFFFFF;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            animation: popUp 0.3s ease-out;
+        }
+        .modal-content h3 {
+            color: #FF69B4; /* Rosa flamingo */
+            font-size: 1.2em;
+            margin-bottom: 16px;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes popUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        @media (max-width: 360px) {
+            .card { padding: 16px; }
+            .header h1 { font-size: 1.5em; }
+            .step h2 { font-size: 1.2em; }
+            .mood-btn { font-size: 0.9em; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Diário da Mel <i class="fas fa-heart"></i></h1>
+                <p style="font-size: 0.9em;">Quinta-feira, 29/05/2025 - 11:12</p>
+            </div>
+            <div class="step active" id="step-time">
+                <h2>Qual momento? ✨</h2>
+                <label>Escolha seu período</label>
+                <select id="formTime">
+                    <option value="" disabled selected>Escolha</option>
+                    <option value="Manhã">Manhã 🌞</option>
+                    <option value="Tarde">Tarde 🌇</option>
+                    <option value="Noite">Noite 🌙</option>
+                </select>
+                <button class="button" id="next-time">Próximo</button>
+            </div>
+            <div class="step" id="step-mood">
+                <h2>Como está se sentindo? 👁️‍🗨️</h2>
+                <label>Escolha seu humor</label>
+                <div class="mood-options" id="moodOptions"></div>
+                <div class="mood-info" id="moodInfo">
+                    <p><strong>Emoji:</strong> <span id="moodEmoji"></span></p>
+                    <p><strong>Fase:</strong> <span id="moodPhase"></span></p>
+                    <p><strong>Significado:</strong> <span id="moodDescription"></span></p>
+                </div>
+                <button class="button" id="next-mood">Próximo</button>
+                <button class="button back" id="back-mood">Voltar</button>
+            </div>
+            <div class="step" id="step-notes">
+                <h2>Algum sinal? ⚡</h2>
+                <label>Selecione um sinal</label>
+                <select id="formNotes">
+                    <option value="">Nenhum</option>
+                    <option value="💥">💥 Impulsividade</option>
+                    <option value="💔">💔 Crise relacional</option>
+                    <option value="🌪️">🌪️ Oscilação emocional</option>
+                    <option value="🧊">🧊 Dissociação</option>
+                    <option value="🔪">🔪 Autolesões</option>
+                    <option value="🧠">🧠 Pensamentos obsessivos</option>
+                </select>
+                <button class="button" id="next-notes">Próximo</button>
+                <button class="button back" id="back-notes">Voltar</button>
+            </div>
+            <div class="step" id="step-situation">
+                <h2>O que houve? 📝</h2>
+                <label>Descreva a situação</label>
+                <input type="text" id="formSituation" placeholder="Conte-me mais...">
+                <button class="button" id="next-situation">Próximo</button>
+                <button class="button back" id="back-situation">Voltar</button>
+            </div>
+            <div class="step" id="step-thoughts">
+                <h2>Seus pensamentos? 💭</h2>
+                <label>Escreva seus sentimentos</label>
+                <textarea id="formThoughts" placeholder="O que passou pela sua mente?"></textarea>
+                <button class="button" id="submitForm">Salvar 🚀</button>
+                <button class="button back" id="back-thoughts">Voltar</button>
+            </div>
+            <div class="progress">
+                <div class="progress-dot" data-step="step-time"></div>
+                <div class="progress-dot" data-step="step-mood"></div>
+                <div class="progress-dot" data-step="step-notes"></div>
+                <div class="progress-dot" data-step="step-situation"></div>
+                <div class="progress-dot" data-step="step-thoughts"></div>
+            </div>
+            <div id="successMessage" class="success-message">Maravilhoso! ✨</div>
+        </div>
+
+        <div class="history-card">
+            <h2>Meus Momentos 📒</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="button">Ok, vamos lá! ✨</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const moodScale = [
+                { value: 5, emoji: '🤩', phase: 'Mania severa', description: 'Euforia intensa, energia extrema.' },
+                { value: 4, emoji: '😄', phase: 'Mania moderada', description: 'Agitação, energia alta, mas controlável.' },
+                { value: 3, emoji: '😃', phase: 'Hipomania', description: 'Energia elevada, humor muito positivo.' },
+                { value: 2, emoji: '🙂', phase: 'Eutimia animada', description: 'Bem-estar, leve entusiasmo.' },
+                { value: 1, emoji: '😌', phase: 'Eutimia leve', description: 'Humor bom, tranquilo.' },
+                { value: 0, emoji: '😐', phase: 'Eutimia neutra', description: 'Estável, sem grandes variações.' },
+                { value: -1, emoji: '😶', phase: 'Eutimia apática', description: 'Desânimo leve, falta de energia.' },
+                { value: -2, emoji: '😔', phase: 'Eutimia desanimada', description: 'Desmotivação, tristeza leve.' },
+                { value: -3, emoji: '😢', phase: 'Tristeza moderada', description: 'Tristeza mais intensa, choro fácil.' },
+                { value: -4, emoji: '😞', phase: 'Depressão', description: 'Desesperança, vazio emocional.' },
+                { value: -5, emoji: '🖤', phase: 'Angústia profunda', description: 'Vazio extremo, dor emocional intensa.' }
+            ];
+
+            const dbtTips = [
+                'Respiração Conquista: Inspire por 4s, segure 4s, expire 8s.', // Dia 1, Manhã
+                'Mindful: Observe 5 coisas ao seu redor sem julgar.', // Dia 1, Tarde
+                'Foco no Momento: Toque algo e descreva sua textura.', // Dia 1, Noite
+                'Regulação Emocional: Nomeie sua emoção e cheque os fatos.', // Dia 2, Manhã
+                'Tolerância ao Estresse: Segure um objeto frio para se acalmar.', // Dia 2, Tarde
+                'Relaxamento Profundo: Relaxe cada parte do corpo lentamente.', // Dia 2, Noite
+                'Técnica de Aceitação Radical: Aceite a situação como ela é.', // Dia 30, Manhã
+                'Exercício de Diálogo Interno: Converse consigo com gentileza.', // Dia 30, Tarde
+                'Visualização de Segurança: Imagine um lugar seguro por 1 min.', // Dia 30, Noite
+            ];
+
+            const emdrTips = [
+                'EMDR: Siga meus dedos com os olhos por 30s (imagine alternância).', // Dia 1, Manhã
+                'EMDR Lugar Seguro: Visualize um lugar calmo e seguro por 1 min.', // Dia 1, Tarde
+                'EMDR Toque Bilateral: Bata alternadamente nas coxas por 20s.', // Dia 1, Noite
+                'EMDR Movimento Ocular: Imagine um pêndulo movendo-se por 30s.', // Dia 2, Manhã
+                'EMDR Som Bilateral: Ouça sons alternados em cada ouvido por 20s.', // Dia 2, Tarde
+                'EMDR Respiração Guiada: Inspire e expire com movimentos oculares.', // Dia 2, Noite
+                'EMDR Reconexão Positiva: Foque em uma memória feliz por 30s.', // Dia 30, Manhã
+                'EMDR Desensibilização: Visualize o gatilho com menos intensidade.', // Dia 30, Tarde
+                'EMDR Integração: Conecte o passado ao presente com calma.', // Dia 30, Noite
+            ];
+
+            const bibleVerses = [
+                'Salmos 5:3 (NAA): "De manhã ouves a minha voz, ó Senhor; de manhã te apresento a minha oração e fico esperando."', // Dia 1, Manhã
+                'Lamentações 3:22-23 (NAA): "As misericórdias do Senhor são a causa de não sermos consumidos, porque as suas misericórdias não têm fim; renovam-se cada manhã."', // Dia 1, Tarde
+                'Salmos 4:8 (NAA): "Em paz me deito e logo adormeço, pois só tu, Senhor, me fazes viver em segurança."', // Dia 1, Noite
+                'Salmos 55:17 (NAA): "De tarde, e de manhã, e ao meio-dia, farei as minhas queixas e lamentarei; e ele ouvirá a minha voz."', // Dia 2, Manhã
+                'Provérbios 3:5-6 (NAA): "Confie no Senhor de todo o seu coração e não se apoie no seu próprio entendimento. Reconheça-o em todos os seus caminhos, e ele endireitará as suas veredas."', // Dia 2, Tarde
+                'Salmos 121:3-4 (NAA): "Ele não permitirá que o seu pé vacile; aquele que o guarda não dormirá. Eis que não dorme nem dormirá aquele que guarda Israel."', // Dia 2, Noite
+                'Isaías 40:31 (NAA): "Mas os que esperam no Senhor renovarão as suas forças; voarão como águias; correrão e não se cansarão; caminharão e não desfalecerão."', // Dia 30, Manhã
+                'Filipenses 4:13 (NAA): "Tudo posso naquele que me fortalece."', // Dia 30, Tarde
+                'João 16:33 (NAA): "Tenho-vos dito isto, para que em mim tenhais paz; no mundo tereis aflições, mas tende bom ânimo, eu venci o mundo."', // Dia 30, Noite
+            ];
+
+            let history = [];
+            let currentEntry = {};
+            let currentDay = 'Quinta-feira, 29/05/2025';
+            const endDay = 'Sábado, 27/06/2025';
+            const maxEntries = 90; // 30 dias * 3 períodos
+
+            // Populate mood options
+            const moodOptionsContainer = document.getElementById('moodOptions');
+            const moodInfo = document.getElementById('moodInfo');
+            const moodEmoji = document.getElementById('moodEmoji');
+            const moodPhase = document.getElementById('moodPhase');
+            const moodDescription = document.getElementById('moodDescription');
+
+            if (moodOptionsContainer) {
+                moodScale.forEach(mood => {
+                    const button = document.createElement('button');
+                    button.className = 'mood-btn';
+                    button.textContent = `${mood.emoji} ${mood.phase}`;
+                    button.setAttribute('data-value', mood.value);
+                    button.addEventListener('click', () => {
+                        moodOptionsContainer.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                        currentEntry.moodValue = mood.value;
+
+                        // Show mood info
+                        moodEmoji.textContent = mood.emoji;
+                        moodPhase.textContent = mood.phase;
+                        moodDescription.textContent = mood.description;
+                        moodInfo.classList.add('active');
+                    });
+                    moodOptionsContainer.appendChild(button);
+                });
+            }
+
+            // Disable filled periods
+            function updateAvailablePeriods() {
+                const dayEntries = history.filter(entry => entry.day === currentDay);
+                const filledPeriods = dayEntries.map(entry => entry.time);
+                const options = document.getElementById('formTime').options;
+                for (let i = 0; i < options.length; i++) {
+                    const option = options[i];
+                    if (option.value && filledPeriods.includes(option.value)) {
+                        option.disabled = true;
+                    } else {
+                        option.disabled = false;
+                    }
+                }
+            }
+
+            // Get unique tip or verse based on day and period
+            function getTipOrVerse(array, dayIndex, periodIndex) {
+                const totalDays = 30;
+                const index = (dayIndex * 3 + periodIndex) % array.length;
+                return array[index];
+            }
+
+            // Navigation
+            const steps = ['step-time', 'step-mood', 'step-notes', 'step-situation', 'step-thoughts'];
+            let currentStep = 0;
+
+            function showStep(index) {
+                steps.forEach((step, i) => {
+                    const element = document.getElementById(step);
+                    element.classList.toggle('active', i === index);
+                    document.querySelectorAll('.progress-dot')[i].classList.toggle('active', i <= index);
+                });
+                updateButtons();
+                if (index === 0) updateAvailablePeriods();
+            }
+
+            function updateButtons() {
+                document.querySelectorAll('.back').forEach(btn => btn.style.display = currentStep > 0 ? 'block' : 'none');
+                document.querySelectorAll('.button:not(.back)').forEach(btn => {
+                    btn.disabled = currentStep === 4 && (!currentEntry.time || !currentEntry.moodValue || !document.getElementById('formNotes').value || !document.getElementById('formSituation').value || !document.getElementById('formThoughts').value);
+                });
+            }
+
+            // Update history display
+            function updateHistory() {
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+
+                const days = [...new Set(history.map(entry => entry.day))];
+                const baseDate = new Date('2025-05-29T11:12:00-03:00');
+                days.forEach((day, dayIndex) => {
+                    const dayCard = document.createElement('div');
+                    dayCard.innerHTML = `<strong>${day}</strong>`;
+                    const dayEntries = history.filter(entry => entry.day === day);
+                    const periodOrder = ['Manhã', 'Tarde', 'Noite'];
+                    dayEntries.sort((a, b) => periodOrder.indexOf(a.time) - periodOrder.indexOf(b.time));
+
+                    dayEntries.forEach((entry, periodIndex) => {
+                        const dbtTip = getTipOrVerse(dbtTips, dayIndex, periodIndex);
+                        const emdrTip = getTipOrVerse(emdrTips, dayIndex, periodIndex);
+                        const verse = getTipOrVerse(bibleVerses, dayIndex, periodIndex);
+                        const entryDiv = document.createElement('div');
+                        entryDiv.className = 'history-entry';
+                        entryDiv.innerHTML = `
+                            <strong>${entry.time}</strong><br>
+                            <strong>Humor:</strong> ${entry.mood}<br>
+                            <strong>Sinal:</strong> ${entry.notes || 'Nenhum'}<br>
+                            <strong>Situação:</strong> ${entry.situation || 'Nenhum'}<br>
+                            <strong>Pensamentos:</strong> ${entry.thoughts || 'Nenhum'}<br>
+                            <div class="dbt-tip">DBT: ${dbtTip}</div>
+                            <div class="emdr-tip">EMDR: ${emdrTip}</div>
+                            <div class="verse">Versículo: ${verse}</div>
+                        `;
+                        dayCard.appendChild(entryDiv);
+                    });
+
+                    historyList.appendChild(dayCard);
+                });
+            }
+
+            // Event listeners
+            document.getElementById('next-time').addEventListener('click', () => {
+                const time = document.getElementById('formTime').value;
+                if (!time) return showModal('Oops! 😅', 'Escolha um momento para continuar!');
+                const dayEntries = history.filter(entry => entry.day === currentDay);
+                if (dayEntries.some(entry => entry.time === time)) return showModal('Oops! 😅', `O período ${time} já foi preenchido hoje. Tente outro!`);
+                currentEntry.time = time;
+                currentEntry.day = currentDay;
+                currentStep++;
+                showStep(currentStep);
+            });
+
+            document.getElementById('next-mood').addEventListener('click', () => {
+                if (!currentEntry.moodValue) return showModal('Oops! 😅', 'Selecione como você está se sentindo!');
+                currentStep++;
+                showStep(currentStep);
+            });
+
+            document.getElementById('next-notes').addEventListener('click', () => {
+                currentEntry.notes = document.getElementById('formNotes').value;
+                currentStep++;
+                showStep(currentStep);
+            });
+
+            document.getElementById('next-situation').addEventListener('click', () => {
+                currentEntry.situation = document.getElementById('formSituation').value;
+                if (!currentEntry.situation) return showModal('Oops! 😅', 'Conte-nos o que aconteceu!');
+                currentStep++;
+                showStep(currentStep);
+            });
+
+            document.getElementById('back-mood').addEventListener('click', () => { currentStep--; showStep(currentStep); });
+            document.getElementById('back-notes').addEventListener('click', () => { currentStep--; showStep(currentStep); });
+            document.getElementById('back-situation').addEventListener('click', () => { currentStep--; showStep(currentStep); });
+            document.getElementById('back-thoughts').addEventListener('click', () => { currentStep--; showStep(currentStep); });
+
+            document.getElementById('submitForm').addEventListener('click', () => {
+                currentEntry.thoughts = document.getElementById('formThoughts').value;
+                if (!currentEntry.thoughts) return showModal('Oops! 😅', 'Escreva seus pensamentos para finalizar!');
+                const mood = moodScale.find(m => m.value == currentEntry.moodValue);
+                const moodText = `${mood.emoji} ${mood.phase}`;
+                const noteText = currentEntry.notes || 'Nenhum';
+
+                const entry = { ...currentEntry, mood: moodText, notes: noteText };
+                history.push(entry);
+                console.log('Registro salvo:', entry);
+
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(() => { successMessage.style.display = 'none'; }, 1500);
+
+                const dayEntries = history.filter(e => e.day === currentDay);
+                const dayIndex = Math.floor((new Date(currentDay) - new Date('2025-05-29')) / (1000 * 60 * 60 * 24));
+                const periodIndex = ['Manhã', 'Tarde', 'Noite'].indexOf(currentEntry.time);
+
+                if (['Mania severa', 'Mania moderada', 'Hipomania'].includes(mood.phase)) {
+                    showModal('Cuidado! 🛑', 'Tente uma pausa confortável: respire fundo por 5 minutos!');
+                } else if (entry.notes === '🔪' || entry.thoughts.toLowerCase().includes('suicídio')) {
+                    showModal('Alerta! 🚨', 'Procure ajuda urgente: terapeuta, emergência ou ligue para 188 - CVV');
+                } else {
+                    showModal('Incrível! 🌟', 'Você está no caminho certo! Continue assim!');
+                }
+
+                if (dayEntries.length === 3) {
+                    showModal('Parabéns! 🎉', 'Você completou todos os momentos de hoje!');
+                    const baseDate = new Date('2025-05-29T11:12:00-03:00');
+                    const daysSinceStart = Math.floor(history.length / 3);
+                    const nextDate = new Date(baseDate);
+                    nextDate.setDate(baseDate.getDate() + daysSinceStart);
+                    currentDay = nextDate.toLocaleString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/(\d+) de (\w+) de (\d+)/, '$1/$2/$3');
+                    currentDay = currentDay.charAt(0).toUpperCase() + currentDay.slice(1);
+                    document.querySelector('.header p').textContent = `${currentDay} - 11:12`;
+                }
+
+                if (history.length >= maxEntries) showModal('Fim da Jornada! 🌌', 'Você completou 30 dias!');
+
+                updateHistory();
+                currentEntry = { day: currentDay };
+                currentStep = 0;
+                showStep(currentStep);
+                document.getElementById('formTime').selectedIndex = 0;
+                document.getElementById('formNotes').selectedIndex = 0;
+                document.getElementById('formSituation').value = '';
+                document.getElementById('formThoughts').value = '';
+                moodOptionsContainer.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected'));
+                moodInfo.classList.remove('active');
+            });
+
+            function showModal(title, message) {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalMessage').textContent = message;
+                document.getElementById('modal').style.display = 'flex';
+            }
+
+            document.querySelector('.modal-content button').addEventListener('click', () => {
+                document.getElementById('modal').style.display = 'none';
+            });
+
+            // Initial setup
+            showStep(currentStep);
+            updateAvailablePeriods();
+        });
+    </script>
+</body>
+</html>
